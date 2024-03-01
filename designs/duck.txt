@@ -1,0 +1,7 @@
+b4o1b1
+b4y2
+o1b1y4
+o2y3b1
+b2y3b1
+b3y1b2
+b6
