@@ -18,7 +18,6 @@ To run the program, navigate to the program's directory in your terminal and use
 python kaituitui.py --width 800 --height 600 --speed 5 --repeats 2 --design watermelon
 ```
 
-You can replace design_drawer.py with the name of your Python script.
 Command-Line Arguments
     
     --width: Sets the width of the screen (default is 800 + the height is calculated automatically).
@@ -46,10 +45,3 @@ This command will initiate the turtle graphics window and start drawing the spec
 ## Modifying Designs
 
 To add or modify designs, edit or create new text files in the designs directory. Each line in a design file should consist of pairs of characters where the first character is a key from colour_dict representing a color and the second character is a digit representing how many times to repeat that color in a row.
-Closing the Program
-
-Close the turtle graphics window to terminate the program.
-
-## Support
-
-For issues, questions, or contributions, please open an issue on the GitHub repository where this program is hosted.
