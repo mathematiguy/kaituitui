@@ -1,10 +1,10 @@
 PYTHON ?= venv/bin/python3.10
 
 run: venv
-	$(PYTHON) kaituitui.py
+	bash run.sh
 
 clean:
-	rm -rf *.eps *.gif
+	rm -rf gif/*.eps gif/*.gif
 
 venv:
 	python3 -m venv venv

@@ -11,6 +11,7 @@ try:
 except ImportError:
     pil_available = False
 
+gif_dir = "gif/"
 
 colour_dict = dict(
     b="blue",
@@ -27,12 +28,11 @@ colour_dict = dict(
 
 def split_string_in_pairs(s):
     """
-    Splits a given string into substrings of length 2.
+    Splits a string into pairs of characters. Used to interpret the design files.
 
-    :param s: The string to be split into pairs.
-    :return: A list of substrings, each of length 2.
+    :param s: String to be split.
+    :return: List of character pairs.
     """
-
     # Initialize an empty list to store the substrings
     substrings = []
 
@@ -44,14 +44,14 @@ def split_string_in_pairs(s):
     return substrings
 
 
-def draw_square(t, fill):
+def draw_square(t, fill, pixel_size):
     """
-    Draws a filled square using the turtle graphics library.
+    Draws a colored square using turtle graphics.
 
-    :param t: The turtle object used for drawing.
-    :param fill: The color used to fill the square.
+    :param t: Turtle object for drawing.
+    :param fill: Color to fill the square.
+    :param pixel_size: Size of the square side.
     """
-
     # Set the fill color
     t.fillcolor(fill)
 
@@ -59,7 +59,7 @@ def draw_square(t, fill):
 
     # Draw a square
     for _ in range(4):
-        t.forward(100)  # Move the turtle forward by 100 units
+        t.forward(pixel_size)  # Move the turtle forward by pixel_size units
         t.left(90)  # Turn the turtle right by 90 degrees
 
     # End filling the color
@@ -68,10 +68,10 @@ def draw_square(t, fill):
 
 def load_design(path):
     """
-    Loads a design from a text file, where each character represents a color and a number that indicates the repetition.
+    Loads a design from a text file, creating a matrix representation.
 
     :param path: Path to the design file.
-    :return: A list of lists representing the design, where each sublist corresponds to a row of the design.
+    :return: Design matrix where each element represents a color in a pixel.
     """
     design = []
     with open(path, "r") as f:
@@ -84,27 +84,27 @@ def load_design(path):
     return design
 
 
-def draw_design(t, d):
+def draw_design(t, d, pixel_size):
     """
-    Draws a design based on the provided design matrix where each cell contains a color character.
+    Draws the entire design from a matrix representation.
 
-    :param d: The design matrix with color codes.
+    :param d: Design matrix.
+    :param pixel_size: Size of each pixel square.
     """
-
     for row in d:
         for pixel in row:
-            draw_square(t, colour_dict[pixel])
+            draw_square(t, colour_dict[pixel], pixel_size)
 
             # Move to the next location
             t.left(90)
-            t.forward(100)
+            t.forward(pixel_size)
             t.right(90)
 
         # Move to the next location
         t.right(90)
-        t.forward(100 * len(row))
+        t.forward(pixel_size * len(row))
         t.left(90)
-        t.forward(100)
+        t.forward(pixel_size)
 
 
 # Modified main function
@@ -116,10 +116,10 @@ def main():
         "--width", type=int, default=800, help="Width of the turtle screen."
     )
     parser.add_argument(
-        "--height", type=int, default=600, help="Height of the turtle screen."
+        "--repeats", type=int, default=2, help="Number of horizontal repeats"
     )
     parser.add_argument(
-        "--speed", type=int, choices=range(11), default=0, help="Speed of the turtle."
+        "--speed", choices=["fast", "slow"], default="fast", help="Speed of the turtle."
     )
     parser.add_argument(
         "--design",
@@ -133,66 +133,85 @@ def main():
         action="store_true",
         help="Save the drawing process as a GIF animation.",
     )
-    parser.add_argument(
-        "--output", type=str, default="animation.gif", help="Output GIF file name."
-    )
 
     args = parser.parse_args()
 
-    if args.savegif and not pil_available:
+    if args.savegif:
+        output = f"{args.design}-{args.speed}-x{args.repeats}"
+    elif not pil_available:
         print(
             "PIL (Pillow) is not available. The animation will not be saved as a GIF."
         )
         args.savegif = False  # Disable GIF saving if PIL is not available
 
+    # Read the design file
+    path = f"designs/{args.design}.txt"
+    design = load_design(path) * args.repeats
+
+    # Calculate the width and height of the design
+    design_width, design_height = len(design), max(len(d) for d in design)
+
+    # Calculate the pixel size
+    # This is chosen so that there is 1 pixel width on either side of the design
+    pixel_size = args.width / (design_width + 2)
+
+    # Calculate the size of the image
+    image_width = design_width * pixel_size
+    image_height = design_height * pixel_size
+
+    screen_height = pixel_size * (design_height + 2)
+
+    # Set up the screen instance
+    global screen
     screen = turtle.Screen()
-    screen.setup(width=args.width, height=args.height)
+    screen.setup(width=args.width, height=screen_height)
     screen.title(f"Turtle Drawing - {args.design.capitalize()}")
 
-    path = f"designs/{args.design}.txt"
-    design = load_design(path)
-
+    # Make the turtle
     t = turtle.Turtle(shape="turtle")
-    t.speed(args.speed)
+    t.speed(0 if args.speed == "fast" else 10)
 
-    start_x = -args.height / 2 + 20
-    start_y = -args.width / 2 + 20
+    # Calculate the width and height of the screen
+    start_x = -args.width // 2 + pixel_size
+    start_y = -image_height // 2
 
+    # Start the turtle in the right place
     t.penup()
     t.goto(start_x, start_y)
     t.pendown()
 
-    # Modify the drawing process to optionally save each frame
+    # Run the drawing process
+    global frame_count
     frame_count = 0
     for row in design:
         for pixel in row:
-            draw_square(t, colour_dict[pixel])
+            draw_square(t, colour_dict[pixel], pixel_size)
             t.left(90)
-            t.forward(100)
+            t.forward(pixel_size)
             t.right(90)
 
             # Save the frame if GIF saving is enabled
             if args.savegif:
                 canvas = screen.getcanvas()
-                canvas.postscript(file=f"frame_{frame_count:04}.eps")
+                canvas.postscript(file=f"{gif_dir}/{output}_frame_{frame_count:04}.eps")
                 frame_count += 1
 
         t.right(90)
-        t.forward(100 * len(row))
+        t.forward(pixel_size * len(row))
         t.left(90)
-        t.forward(100)
+        t.forward(pixel_size)
 
     # Convert all frames to GIF and combine them if GIF saving is enabled
     if args.savegif:
         frames = []
         for i in range(frame_count):
-            frame = Image.open(f"frame_{i:04}.eps")
+            frame = Image.open(f"{gif_dir}/{output}_frame_{i:04}.eps")
             frame = frame.convert("RGBA")
-            frame.save(f"frame_{i:04}.gif", "gif")
-            frames.append(Image.open(f"frame_{i:04}.gif"))
+            frame.save(f"{gif_dir}/{output}_frame_{i:04}.gif", "gif")
+            frames.append(Image.open(f"{gif_dir}/{output}_frame_{i:04}.gif"))
 
         frames[0].save(
-            args.output,
+            f"{gif_dir}/{output}.gif",
             save_all=True,
             append_images=frames[1:],
             optimize=False,
@@ -202,10 +221,8 @@ def main():
 
         # Cleanup: remove temporary files
         for i in range(frame_count):
-            os.remove(f"frame_{i:04}.eps")
-            os.remove(f"frame_{i:04}.gif")
-
-    screen.mainloop()
+            os.remove(f"{gif_dir}/{output}_frame_{i:04}.eps")
+            os.remove(f"{gif_dir}/{output}_frame_{i:04}.gif")
 
 
 if __name__ == "__main__":
