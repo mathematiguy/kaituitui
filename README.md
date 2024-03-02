@@ -33,9 +33,9 @@ Example
 
 To draw a heart design with a screen width of 900, a height of 700, at a turtle speed of 3, use the following command:
 
-bash
-
+```bash
 python kaituitui.py --width 900 --height 700 --speed 3 --design heart
+```
 
 This command will initiate the turtle graphics window and start drawing the specified heart design with the given parameters.
 
