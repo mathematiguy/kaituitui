@@ -3,8 +3,8 @@
 set -ex
 
 
-for speed in fast; do
-    for repeat in 2 4; do
+for speed in slow fast; do
+    for repeat in 2 3 4; do
             for design in watermelon heart duck; do
             # Construct the expected GIF filename based on current parameters
             filename="gif/${design}-${speed}-x${repeat}.gif"
