@@ -7,7 +7,7 @@ Installation
 
 Before running the program, ensure you have Python installed on your system. This program has been tested with Python 3.8 and above.
 
-No additional Python libraries are required apart from turtle and argparse, which are included in the standard Python library.
+No additional Python libraries are required apart from turtle and argparse, which are included in the standard Python library. You do however need to install tkinter.
 
 ## Usage
 
