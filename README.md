@@ -13,9 +13,10 @@ No additional Python libraries are required apart from turtle and argparse, whic
 
 To run the program, navigate to the program's directory in your terminal and use the following command:
 
-bash
 
+```bash
 python design_drawer.py --width 800 --height 600 --speed 5 --design watermelon
+```
 
 You can replace design_drawer.py with the name of your Python script.
 Command-Line Arguments
@@ -34,7 +35,7 @@ To draw a heart design with a screen width of 900, a height of 700, at a turtle 
 
 bash
 
-python design_drawer.py --width 900 --height 700 --speed 3 --design heart
+python kaituitui.py --width 900 --height 700 --speed 3 --design heart
 
 This command will initiate the turtle graphics window and start drawing the specified heart design with the given parameters.
 
