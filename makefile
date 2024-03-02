@@ -1,7 +1,13 @@
 PYTHON ?= venv/bin/python3.10
 
-run:
-	python3 kaituitui.py
+run: venv
+	$(PYTHON) kaituitui.py
+
+clean:
+	rm -rf *.eps *.gif
+
+venv:
+	python3 -m venv venv
 
 install:
-	$(PYTHON) -m pip install -r requirements.txt
+	python3 -m pip install -r requirements.txt
