@@ -1,5 +1,16 @@
+import os
 import turtle
 import argparse
+from PIL import Image
+
+# Attempt to import PIL; set a flag to indicate its availability
+try:
+    from PIL import Image
+
+    pil_available = True
+except ImportError:
+    pil_available = False
+
 
 colour_dict = dict(
     b="blue",
@@ -7,10 +18,10 @@ colour_dict = dict(
     o="orange",
     k="black",
     w="white",
-    G="#006400", # Dark green
-    p="#FD4659", # Watermelon pink
-    r='red',
-    g="#8FBC8F", # Light green
+    G="#006400",  # Dark green
+    p="#FD4659",  # Watermelon pink
+    r="red",
+    g="#8FBC8F",  # Light green
 )
 
 
@@ -96,46 +107,105 @@ def draw_design(t, d):
         t.forward(100)
 
 
+# Modified main function
 def main():
-    """
-    Main function to load a design and draw it with command line arguments for customization.
-    """
-    parser = argparse.ArgumentParser(description="Draw a specified design with turtle graphics.")
-    parser.add_argument("--width", type=int, default=800, help="Width of the turtle screen.")
-    parser.add_argument("--height", type=int, default=600, help="Height of the turtle screen.")
-    parser.add_argument("--speed", type=int, choices=range(11), default=0, help="Speed of the turtle, from 0 (fastest) to 10 (slowest).")
-    parser.add_argument("--design", type=str, choices=['duck', 'heart', 'watermelon'], default='duck', help="Design name to draw (duck, watermelon or heart).")
+    parser = argparse.ArgumentParser(
+        description="Draw a specified design with turtle graphics."
+    )
+    parser.add_argument(
+        "--width", type=int, default=800, help="Width of the turtle screen."
+    )
+    parser.add_argument(
+        "--height", type=int, default=600, help="Height of the turtle screen."
+    )
+    parser.add_argument(
+        "--speed", type=int, choices=range(11), default=0, help="Speed of the turtle."
+    )
+    parser.add_argument(
+        "--design",
+        type=str,
+        choices=["duck", "heart", "watermelon"],
+        default="duck",
+        help="Design name to draw.",
+    )
+    parser.add_argument(
+        "--savegif",
+        action="store_true",
+        help="Save the drawing process as a GIF animation.",
+    )
+    parser.add_argument(
+        "--output", type=str, default="animation.gif", help="Output GIF file name."
+    )
 
     args = parser.parse_args()
 
-    # Set up the screen with specified dimensions
+    if args.savegif and not pil_available:
+        print(
+            "PIL (Pillow) is not available. The animation will not be saved as a GIF."
+        )
+        args.savegif = False  # Disable GIF saving if PIL is not available
+
     screen = turtle.Screen()
     screen.setup(width=args.width, height=args.height)
     screen.title(f"Turtle Drawing - {args.design.capitalize()}")
 
-    # Load the specified design
     path = f"designs/{args.design}.txt"
     design = load_design(path)
 
-    # Create a turtle and set its speed
     t = turtle.Turtle(shape="turtle")
     t.speed(args.speed)
 
-    # The starting coordinates will be a bit above and to the right of the bottom-left corner
-    # to ensure the turtle is visible and starts drawing within the window.
-    # These coordinates assume a screen size of 800x600.
-    start_x = -args.height / 2 + 20  # 20 units inward from the left edge
-    start_y = -args.width / 2 + 20  # 20 units upward from the bottom edge
+    start_x = -args.height / 2 + 20
+    start_y = -args.width / 2 + 20
 
-    # Move the turtle to the bottom-left corner without drawing
-    t.penup()  # Don't draw when moving.
+    t.penup()
     t.goto(start_x, start_y)
-    t.pendown()  # Ready to draw.
+    t.pendown()
 
-    # Draw the design
-    draw_design(t, design)
+    # Modify the drawing process to optionally save each frame
+    frame_count = 0
+    for row in design:
+        for pixel in row:
+            draw_square(t, colour_dict[pixel])
+            t.left(90)
+            t.forward(100)
+            t.right(90)
 
-    screen.mainloop()  # Keep the window open until closed by the user
+            # Save the frame if GIF saving is enabled
+            if args.savegif:
+                canvas = screen.getcanvas()
+                canvas.postscript(file=f"frame_{frame_count:04}.eps")
+                frame_count += 1
+
+        t.right(90)
+        t.forward(100 * len(row))
+        t.left(90)
+        t.forward(100)
+
+    # Convert all frames to GIF and combine them if GIF saving is enabled
+    if args.savegif:
+        frames = []
+        for i in range(frame_count):
+            frame = Image.open(f"frame_{i:04}.eps")
+            frame = frame.convert("RGBA")
+            frame.save(f"frame_{i:04}.gif", "gif")
+            frames.append(Image.open(f"frame_{i:04}.gif"))
+
+        frames[0].save(
+            args.output,
+            save_all=True,
+            append_images=frames[1:],
+            optimize=False,
+            duration=100,
+            loop=0,
+        )
+
+        # Cleanup: remove temporary files
+        for i in range(frame_count):
+            os.remove(f"frame_{i:04}.eps")
+            os.remove(f"frame_{i:04}.gif")
+
+    screen.mainloop()
 
 
 if __name__ == "__main__":
