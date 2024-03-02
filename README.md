@@ -15,7 +15,7 @@ To run the program, navigate to the program's directory in your terminal and use
 
 
 ```bash
-python design_drawer.py --width 800 --height 600 --speed 5 --design watermelon
+python kaituitui.py --width 800 --height 600 --speed 5 --design watermelon
 ```
 
 You can replace design_drawer.py with the name of your Python script.
