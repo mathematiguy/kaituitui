@@ -203,7 +203,9 @@ def main():
     t = turtle.Turtle(shape="turtle")
     t.speed(0)
 
-    # Calculate the width and height of the screen
+    # Calculate the start point of the turtle
+    # We start 1 square to the right of the left edge, half the height of the
+    # design from the centre of the frame
     start_x = -args.width // 2 + pixel_size
     start_y = -image_height // 2
 
