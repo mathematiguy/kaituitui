@@ -227,12 +227,11 @@ def main():
             if frame_writer:
                 frame_writer.save_frame(t.getscreen())
 
+        # Return to the base of the row
         t.right(90)
         t.forward(pixel_size * len(row))
         t.left(90)
         t.forward(pixel_size)
-
-    
 
     # After completing the drawing process, create the GIF
     if frame_writer:
